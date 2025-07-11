@@ -18,5 +18,5 @@ app.get('/api/chat', async (_, res) => res.send(await askQuestion("Quiero pagar 
 app.listen(PORT, () => console.log(`Servidor en http://localhost:${PORT}`));
 
 // Test the OpenAI integration
-module.exports = serverless(app); 
+module.exports = app;
 
