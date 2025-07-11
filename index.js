@@ -16,4 +16,5 @@ app.get('/', async (_, res) => res.send(await askQuestion("Quiero pagar con Merc
 app.listen(PORT, () => console.log(`Servidor en http://localhost:${PORT}`));
 
 // Test the OpenAI integration
+module.exports = app;
 
