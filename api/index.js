@@ -1,7 +1,8 @@
 const express = require('express');
-const { callOpenAI } = require('./components/openai');
+const { callOpenAI } = require('../components/openai');
 const dotenv = require('dotenv');
-const { askQuestion } = require('./components/cherio');
+const { askQuestion } = require('../components/cherio');
+const serverless = require('serverless-http');
 
 dotenv.config();
 
@@ -16,5 +17,5 @@ app.get('/', async (_, res) => res.send(await askQuestion("Quiero pagar con tarj
 app.listen(PORT, () => console.log(`Servidor en http://localhost:${PORT}`));
 
 // Test the OpenAI integration
-module.exports = app;
+module.exports = serverless(app); 
 
