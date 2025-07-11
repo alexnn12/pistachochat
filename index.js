@@ -7,7 +7,7 @@ dotenv.config();
 
 // Set up Express server
 const app = express();
-const PORT = process.env.PORT || 3007;
+const PORT = process.env.PORT || 3000;
 
 //app.get('/', async (_, res) => res.send(await callOpenAI("Hello, how are you today?")));
 app.get('/', async (_, res) => res.send(await askQuestion("Quiero pagar con MercadoPago")));
