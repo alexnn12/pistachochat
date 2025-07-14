@@ -89,26 +89,62 @@ async function initializeRAG({question,tienda,uri,productos,ai_faqs}) {
 
   const generate = async (state) => {
     const docsContent = state.context.map(doc => doc.pageContent).join("\n");
+    
+    const storePrompt = ChatPromptTemplate.fromTemplate(
+      "Eres un asistente virtual para una tienda online que vende los siguientes productos:\n\n{context}\n\n" +
+      "Responde a la siguiente pregunta del cliente de manera amable y profesional, " +
+      "ofreciendo información precisa sobre los productos disponibles:\n\n{question}"
+    );
+    
+    const messages = await storePrompt.invoke({ 
+      question: state.question, 
+      context: docsContent 
+    });
+    /*const docsContent = state.context.map(doc => doc.pageContent).join("\n");
     const messages = await promptTemplate.invoke({ question: state.question, context: docsContent });
+    const response = await llm.invoke(messages);
+    return { answer: response.content };*/
     const response = await llm.invoke(messages);
     return { answer: response.content };
   };
 
-  // Check if the question is about making a payment
+  // Check if the question is about making a payment using AI
   const checkPaymentIntent = async (state) => {
-    //console.log("checkPaymentIntent", state);
-    const paymentKeywords = ["pagar", "pago", "comprar", "abonar", "payment", "pay"];
-    const hasPaymentIntent = paymentKeywords.some(keyword => 
-      state.question.toLowerCase().includes(keyword)
+    // Use the LLM to detect payment intent and payment method
+    const paymentIntentPrompt = ChatPromptTemplate.fromTemplate(
+      "Analiza el siguiente mensaje y determina:\n" +
+      "1. Si el usuario tiene intención de pagar o comprar algo (responde 'true' o 'false')\n" +
+      "2. Si menciona específicamente MercadoPago (responde 'true' o 'false')\n\n" +
+      "Mensaje del usuario: {question}\n\n" +
+      "Responde en formato JSON con las propiedades 'paymentIntent' y 'mercadoPagoIntent'"
     );
     
-    // Check if MercadoPago is mentioned
-    const hasMercadoPagoIntent = state.question.toLowerCase().includes("mercadopago");
+    const messages = await paymentIntentPrompt.invoke({ question: state.question });
+    const response = await llm.invoke(messages);
     
-    return { 
-      paymentIntent: hasPaymentIntent,
-      mercadoPagoIntent: hasMercadoPagoIntent
-    };
+    try {
+      // Parse the JSON response from the LLM
+      console.log("response",response);
+      //const result = JSON.parse(response.content);
+      //console.log("result",result);
+      return {
+        paymentIntent: response.paymentIntent === true,
+        mercadoPagoIntent: response.mercadoPagoIntent === true
+      };
+    } catch (error) {
+      console.error("Error parsing LLM response for payment intent:", error);
+      // Fallback to keyword-based detection if AI parsing fails
+      const paymentKeywords = ["pagar", "pago", "comprar", "abonar", "payment", "pay"];
+      const hasPaymentIntent = paymentKeywords.some(keyword => 
+        state.question.toLowerCase().includes(keyword)
+      );
+      const hasMercadoPagoIntent = state.question.toLowerCase().includes("mercadopago");
+      
+      return { 
+        paymentIntent: hasPaymentIntent,
+        mercadoPagoIntent: hasMercadoPagoIntent
+      };
+    }
   };
 
   // Ask for payment method if payment intent is detected
