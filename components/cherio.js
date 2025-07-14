@@ -36,9 +36,16 @@ const sampleText = [
   "Retrieval-augmented generation combines the power of language models with the ability to access external knowledge."
 ];
 
-async function initializeRAG() {
+async function initializeRAG({question,tienda,uri,productos,ai_faqs}) {
   // Create document from sample text
-  const docs = sampleText.map(text => new Document({ pageContent: text }));
+  //const docs = sampleText.map(text => new Document({ pageContent: text }));
+
+  const docs = productos.map(
+    producto => new Document({ pageContent: producto.nombre + " " 
+        + producto.descripcion + " "
+         + producto.precio }));
+
+         
 
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 1000, chunkOverlap: 200
@@ -107,7 +114,7 @@ async function initializeRAG() {
   // Ask for payment method if payment intent is detected
   const askPaymentMethod = async (state) => {
     return { 
-      answer: "Esta es la tienda: " + state.tienda + "Esta es la uri: " + state.uri + "Esta es la lista de productos: " + state.productos + "Esta es la lista de faqs: " + state.ai_faqs + "Por favor, indique su método de pago preferido: MercadoPago, Tarjeta de crédito, transferencia bancaria o efectivo.",
+      answer: "Esta es la tienda: " + state.tienda + "Esta es la uri: " + state.uri + "cantidad de productos: " + state.productos.length + "Por favor, indique su método de pago preferido: MercadoPago, Tarjeta de crédito, transferencia bancaria o efectivo.",
       paymentMethod: null   
     };
   };
@@ -120,6 +127,13 @@ async function initializeRAG() {
     };
   };
 
+  const getProducts = async (state) => {
+    return {
+      answer: "Esta es la lista de productos: " + state.productos + "\nProductos encontrados en la búsqueda: " + state.context.map(doc => doc.pageContent).join(", "),
+      products: state.productos,
+      retrievedProducts: state.context
+    };
+  };
   // Router function to determine next step based on payment intent
   const router = (state) => {
     if (state.mercadoPagoIntent) {
@@ -136,6 +150,7 @@ async function initializeRAG() {
     .addNode("checkPaymentIntent", checkPaymentIntent)
     .addNode("askPaymentMethod", askPaymentMethod)
     .addNode("redirectToMercadoPago", redirectToMercadoPago)
+    .addNode("getProducts", getProducts)
     .addNode("generate", generate)
     .addEdge("__start__", "retrieve")
     .addEdge("retrieve", "checkPaymentIntent")
@@ -149,11 +164,11 @@ async function initializeRAG() {
 }
 
 async function askQuestion(question,tienda,uri,productos,ai_faqs)  {
-  const graph = await initializeRAG();
-  const inputs = { question,tienda,uri };
+  const graph = await initializeRAG({question,tienda,uri,productos,ai_faqs});
+  const inputs = { question,tienda,uri,productos,ai_faqs };
   //console.log(inputs);
   const result = await graph.invoke(inputs);
-  //console.log(result.answer);
+  console.log(result.answer);
   return result.answer;
 }
 
