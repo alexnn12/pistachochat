@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 
 // Enable CORS for all routes
 app.use(cors({
-  origin: 'http://localhost:3002',
+  origin: ['http://localhost:3002', 'https://www.pistacho.app'],
   methods: ['GET', 'POST'],
   credentials: true
 }));
@@ -28,14 +28,14 @@ app.use(express.json());
 // POST endpoint for chat
 app.post('/api/chat', async (req, res) => {
   try {
-    const { prompt } = req.body;
-    console.log(prompt);
+    const { prompt,uri,tienda } = req.body;
+    console.log(prompt,uri,tienda);
     if (!prompt) {
       return res.status(400).json({ error: 'Message is required' });
     }
     
     const response = await askQuestion(prompt);
-    res.json({ response });
+    res.json({ respuesta: response });
   } catch (error) {
     console.error('Error processing chat request:', error);
     res.status(500).json({ error: 'Internal server error' });
