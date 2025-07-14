@@ -15,6 +15,7 @@ const llm = new ChatOpenAI({
   openAIApiKey: process.env.OPENAI_API_KEY,
   temperature: 0.7,
   modelName: "gpt-4o-mini",
+  /*
   configuration: {
     baseURL: "https://oai.helicone.ai/v1",
     defaultHeaders: {
@@ -22,6 +23,7 @@ const llm = new ChatOpenAI({
       "Helicone-Cache-Enabled": "true",
     },
   },
+  */
 });
 
 // Initialize vector store
