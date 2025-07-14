@@ -53,7 +53,11 @@ async function initializeRAG() {
 
   // Define state for application
   const InputStateAnnotation = Annotation.Root({
-    question: Annotation
+    question: Annotation,
+    tienda: Annotation,
+    uri: Annotation,
+    productos: Annotation,
+    ai_faqs: Annotation
   });
 
   const StateAnnotation = Annotation.Root({
@@ -62,11 +66,16 @@ async function initializeRAG() {
     answer: Annotation,
     paymentIntent: Annotation,
     paymentMethod: Annotation,
-    mercadoPagoIntent: Annotation
+    mercadoPagoIntent: Annotation,
+    tienda: Annotation,
+    uri: Annotation,
+    productos: Annotation,
+    ai_faqs: Annotation
   });
 
   // Define application steps
   const retrieve = async (state) => {
+    console.log("retrieve", state.question, state.tienda);
     const retrievedDocs = await vectorStore.similaritySearch(state.question);
     return { context: retrievedDocs };
   };
@@ -80,7 +89,7 @@ async function initializeRAG() {
 
   // Check if the question is about making a payment
   const checkPaymentIntent = async (state) => {
-    console.log("checkPaymentIntent", state);
+    //console.log("checkPaymentIntent", state);
     const paymentKeywords = ["pagar", "pago", "comprar", "abonar", "payment", "pay"];
     const hasPaymentIntent = paymentKeywords.some(keyword => 
       state.question.toLowerCase().includes(keyword)
@@ -98,7 +107,7 @@ async function initializeRAG() {
   // Ask for payment method if payment intent is detected
   const askPaymentMethod = async (state) => {
     return { 
-      answer: "Por favor, indique su método de pago preferido: MercadoPago, Tarjeta de crédito, transferencia bancaria o efectivo.",
+      answer: "Esta es la tienda: " + state.tienda + "Esta es la uri: " + state.uri + "Esta es la lista de productos: " + state.productos + "Esta es la lista de faqs: " + state.ai_faqs + "Por favor, indique su método de pago preferido: MercadoPago, Tarjeta de crédito, transferencia bancaria o efectivo.",
       paymentMethod: null   
     };
   };
@@ -139,11 +148,12 @@ async function initializeRAG() {
   return graph;
 }
 
-async function askQuestion(question) {
+async function askQuestion(question,tienda,uri,productos,ai_faqs)  {
   const graph = await initializeRAG();
-  const inputs = { question };
+  const inputs = { question,tienda,uri };
+  //console.log(inputs);
   const result = await graph.invoke(inputs);
-  console.log(result.answer);
+  //console.log(result.answer);
   return result.answer;
 }
 

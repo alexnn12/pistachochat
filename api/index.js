@@ -28,18 +28,17 @@ app.use(express.json());
 // POST endpoint for chat
 app.post('/api/chat', async (req, res) => {
   try {
-    const { prompt,uri,tienda } = req.body;
-    console.log(prompt,uri,tienda);
+    const { prompt,uri,tienda,productos, ai_faqs } = req.body;
     if (!prompt) {
       return res.status(400).json({ error: 'Message is required' });
     }
     
-    const response = await askQuestion(prompt);
+    const response = await askQuestion(prompt,tienda,uri,productos,ai_faqs);
     res.json({ respuesta: response });
   } catch (error) {
     console.error('Error processing chat request:', error);
     res.status(500).json({ error: 'Internal server error' });
-  }
+  } 
 });
 
 
