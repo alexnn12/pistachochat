@@ -31,6 +31,7 @@ const vectorStore = new MemoryVectorStore(
   new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
 );
 
+
 // Simple text data instead of loading from web
 const sampleText = [
   "Boca Juniors es un club de fútbol que está ubicado en el barrio de Caballito en Buenos Aires, Argentina.",
