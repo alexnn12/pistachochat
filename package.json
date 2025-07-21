@@ -10,11 +10,13 @@
     "@langchain/core": "^0.3.62",
     "@langchain/langgraph": "^0.3.6",
     "@langchain/openai": "^0.5.18",
+    "@supabase/supabase-js": "^2.52.0",
     "cors": "^2.8.5",
     "dotenv": "^17.1.0",
     "express": "^5.1.0",
     "langchain": "^0.3.29",
     "nodemon": "^3.1.10",
+    "openai": "^5.10.1",
     "serverless-http": "^3.2.0"
   }
 }

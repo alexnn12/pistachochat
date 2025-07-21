@@ -2,6 +2,7 @@ const express = require('express');
 const { callOpenAI } = require('../components/openai');
 const dotenv = require('dotenv');
 const { askQuestion } = require('../components/cherio');
+const { simpleChat } = require('../components/simple-chat');
 const serverless = require('serverless-http');
 const cors = require('cors');
 
@@ -37,6 +38,22 @@ app.post('/api/chat', async (req, res) => {
     res.json({ respuesta: response });
   } catch (error) {
     console.error('Error processing chat request:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  } 
+});
+
+// POST endpoint for simple chat (without LangChain)
+app.post('/api/simple-chat', async (req, res) => {
+  try {
+    const { prompt, tienda, productos, ai_faqs, uri } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+    
+    const response = await simpleChat(prompt, tienda, productos, ai_faqs, uri);
+    res.json({ respuesta: response });
+  } catch (error) {
+    console.error('Error processing simple chat request:', error);
     res.status(500).json({ error: 'Internal server error' });
   } 
 });
