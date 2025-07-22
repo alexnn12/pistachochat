@@ -23,7 +23,7 @@ function findRelevantProducts(prompt, productos) {
   return productos.filter(producto => {
     const productText = (producto.nombre + ' ' + producto.descripcion).toLowerCase();
     return keywords.some(keyword => productText.includes(keyword));
-  }).slice(0, 5); // Máximo 5 productos
+  }).slice(0, 100); // Máximo 5 productos
 }
 
 async function simpleChat(prompt, tienda = '', productos = [], ai_faqs = '', uri = '') {
