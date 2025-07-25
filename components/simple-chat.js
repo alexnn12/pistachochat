@@ -65,7 +65,7 @@ async function simpleChat(prompt, tienda = '', productos = [], ai_faqs = '', uri
     const nombreTienda = tiendaData?.nombre || tienda || 'una tienda online';
     let systemMessage = `Eres un asistente virtual amable y profesional para ${nombreTienda}. 
 Ayuda a los clientes con información sobre productos y responde sus preguntas de manera útil.
-Da respuestas cortas y concisas.
+Da respuestas cortas y concisas. No usar negritas.
 ${context ? 'Usa la información de productos y tienda proporcionada para dar respuestas precisas.' : ''}`;
 
     if (mensajes_historial) {
