@@ -24,7 +24,8 @@ app.get('/', (_, res) => res.send('API running'));
 
 app.get('/api/chat', async (_, res) => res.send(await askQuestion("Quiero pagar con tarjeta")));
 // Set up middleware to parse JSON bodies
-app.use(express.json());
+app.use(express.json({ limit: '400kb' }));
+app.use(express.urlencoded({ limit: '400kb', extended: true }));
 
 // POST endpoint for chat
 app.post('/api/chat', async (req, res) => {
