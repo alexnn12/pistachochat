@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 
 // Enable CORS for all routes
 app.use(cors({
-  origin: ['http://localhost:3002', 'https://www.pistacho.app'],
+  origin: ['http://localhost:3002', 'https://www.pistacho.app','https://www.regalaleya.com/','https://www.cintiasalvo.com.ar/','https://www.belle-girls.com/'],
   methods: ['GET', 'POST'],
   credentials: true
 }));
