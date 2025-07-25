@@ -45,12 +45,12 @@ app.post('/api/chat', async (req, res) => {
 // POST endpoint for simple chat (without LangChain)
 app.post('/api/simple-chat', async (req, res) => {
   try {
-    const { prompt, tienda, productos, ai_faqs, uri } = req.body;
+    const { prompt, tienda, productos, ai_faqs, uri,mensajes_historial } = req.body;
     if (!prompt) {
       return res.status(400).json({ error: 'Message is required' });
     }
     
-    const response = await simpleChat(prompt, tienda, productos, ai_faqs, uri);
+    const response = await simpleChat(prompt, tienda, productos, ai_faqs, uri,mensajes_historial);
     res.json({ respuesta: response });
   } catch (error) {
     console.error('Error processing simple chat request:', error);

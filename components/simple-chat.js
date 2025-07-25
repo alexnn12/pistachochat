@@ -26,7 +26,7 @@ function findRelevantProducts(prompt, productos) {
   }).slice(0, 100); // Máximo 5 productos
 }
 
-async function simpleChat(prompt, tienda = '', productos = [], ai_faqs = '', uri = '') {
+async function simpleChat(prompt, tienda = '', productos = [], ai_faqs = '', uri = '',mensajes_historial = '') {
   try {
     // Obtener datos de Supabase si se proporciona URI
     let tiendaData = null;
@@ -63,9 +63,15 @@ async function simpleChat(prompt, tienda = '', productos = [], ai_faqs = '', uri
     
     // Mensaje del sistema
     const nombreTienda = tiendaData?.nombre || tienda || 'una tienda online';
-    const systemMessage = `Eres un asistente virtual amable y profesional para ${nombreTienda}. 
+    let systemMessage = `Eres un asistente virtual amable y profesional para ${nombreTienda}. 
 Ayuda a los clientes con información sobre productos y responde sus preguntas de manera útil.
+Da respuestas cortas y concisas.
 ${context ? 'Usa la información de productos y tienda proporcionada para dar respuestas precisas.' : ''}`;
+
+    if (mensajes_historial) {
+      systemMessage += `\n\nHistorial de mensajes: ${mensajes_historial.map(m => m.role + ': ' + m.content).join('\n')}`;
+    }
+ //   console.log(systemMessage);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
