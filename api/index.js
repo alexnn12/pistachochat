@@ -61,6 +61,7 @@ app.post('/api/simple-chat', async (req, res) => {
   } 
 });
 
+/*
 // GET endpoint for Facebook RSS XML
 app.get('/facebook/:tienda_uri.xml', async (req, res) => {
   try {
@@ -98,6 +99,7 @@ app.get('/google/:tienda_uri.xml', async (req, res) => {
     res.status(500).send('Error interno del servidor');
   }
 });
+*/
 
 
 // Start the server 
