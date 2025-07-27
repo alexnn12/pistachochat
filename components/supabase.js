@@ -21,7 +21,7 @@ async function getTiendaByUri(uri) {
   try {
     const { data, error } = await supabase
       .from('tiendas')
-      .select('*')
+      .select('nombre, tienda_id,uri')
       .eq('uri', uri)
       .single();
     
@@ -91,6 +91,27 @@ console.log (prompt)
   }
 }
 
+async function getProductosByTiendaId(tiendaId) {
+  try {
+    const { data, error } = await supabase
+      .from('tiendas_productos')
+      .select('tienda_producto_id, nombre,descripcion,precio,imagen_preview_url')
+      .eq('tienda_id', tiendaId)
+      .or('producto_tipo.eq.6,producto_tipo.eq.8,producto_tipo.eq.10,producto_tipo.eq.13,producto_tipo.eq.17')
+
+    
+    if (error) {
+      console.error('Error fetching productos:', error);
+      return [];
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error in getProductosByTiendaId:', error);
+    return [];
+  }
+}
+
 async function getTiendaData(uri, prompt = null) {
   try {
     const tienda = await getTiendaByUri(uri);
@@ -100,6 +121,7 @@ async function getTiendaData(uri, prompt = null) {
     
     const paginas = await getTiendasPaginasByTiendaId(tienda.tienda_id, prompt);
     
+
     return {
       tienda,
       paginas
@@ -113,7 +135,8 @@ async function getTiendaData(uri, prompt = null) {
 module.exports = {
   getTiendaByUri,
   getTiendasPaginasByTiendaId,
-  getTiendaData
+  getTiendaData,
+  getProductosByTiendaId
 };
 
 /*CREATE OR REPLACE FUNCTION buscar_tiendas_paginas (

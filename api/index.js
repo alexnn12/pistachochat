@@ -3,6 +3,8 @@ const { callOpenAI } = require('../components/openai');
 const dotenv = require('dotenv');
 const { askQuestion } = require('../components/cherio');
 const { simpleChat } = require('../components/simple-chat');
+const { generateFacebookRSS } = require('../components/facebook-rss');
+const { generateGoogleRSS } = require('../components/google-rss');
 const serverless = require('serverless-http');
 const cors = require('cors');
 
@@ -57,6 +59,44 @@ app.post('/api/simple-chat', async (req, res) => {
     console.error('Error processing simple chat request:', error);
     res.status(500).json({ error: 'Internal server error' });
   } 
+});
+
+// GET endpoint for Facebook RSS XML
+app.get('/facebook/:tienda_uri.xml', async (req, res) => {
+  try {
+    const { tienda_uri } = req.params;
+    
+    const rssXml = await generateFacebookRSS(tienda_uri);
+    
+    if (!rssXml) {
+      return res.status(404).send('Tienda no encontrada');
+    }
+    
+    res.set('Content-Type', 'application/xml');
+    res.send(rssXml);
+  } catch (error) {
+    console.error('Error generating Facebook RSS:', error);
+    res.status(500).send('Error interno del servidor');
+  }
+});
+
+// GET endpoint for Google Shopping RSS XML
+app.get('/google/:tienda_uri.xml', async (req, res) => {
+  try {
+    const { tienda_uri } = req.params;
+    
+    const rssXml = await generateGoogleRSS(tienda_uri);
+    
+    if (!rssXml) {
+      return res.status(404).send('Tienda no encontrada');
+    }
+    
+    res.set('Content-Type', 'application/xml');
+    res.send(rssXml);
+  } catch (error) {
+    console.error('Error generating Google RSS:', error);
+    res.status(500).send('Error interno del servidor');
+  }
 });
 
 
