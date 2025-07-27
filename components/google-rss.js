@@ -28,11 +28,15 @@ ${productos.map(producto => {
     }
   }
   
+  // Determinar la URL base según si tiene dominio propio
+  const baseUrl = tienda.dominio ? `https://${tienda.dominio}` : 'https://www.pistacho.app';
+  const productUrl = `${baseUrl}/${tienda_uri}-pagina?item=${producto.tienda_producto_id}`;
+  
   return `<item>
 <g:id>${producto.tienda_producto_id || producto.id}</g:id>
 <title><![CDATA[${producto.nombre || 'Sin título'}]]></title>
 <description><![CDATA[${producto.descripcion || 'Sin descripción'}]]></description>
-<link>${producto.link || `https://www.pistacho.app/${tienda_uri}-pagina?item=${producto.tienda_producto_id}`}</link>
+<link>${producto.link || productUrl}</link>
 <g:image_link>${imageUrl}</g:image_link>
 <g:availability>in_stock</g:availability>
 <g:condition>new</g:condition>
