@@ -1,11 +1,19 @@
 const { getTiendaByUri, getProductosByTiendaId } = require('./supabase');
 
-async function generateGoogleRSS(tienda_uri) {
+async function generateGoogleRSS(tienda_uri, providedTimestamp) {
   try {
     // Obtener tienda por URI
     const tienda = await getTiendaByUri(tienda_uri);
     if (!tienda) {
       return null;
+    }
+    
+    // Validar timestamp si se proporciona
+    if (providedTimestamp) {
+      const tiendaDate = new Date(tienda.fecha).getTime();
+      if (tiendaDate !== providedTimestamp) {
+        return { error: 'INVALID_DATE' };
+      }
     }
     
     // Obtener productos de la tienda
@@ -50,7 +58,7 @@ ${productos.map(producto => {
 </channel>
 </rss>`;
     
-    return rssXml;
+    return { xml: rssXml };
   } catch (error) {
     console.error('Error generating Google RSS:', error);
     return null;

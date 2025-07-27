@@ -61,45 +61,53 @@ app.post('/api/simple-chat', async (req, res) => {
   } 
 });
 
-/*
-// GET endpoint for Facebook RSS XML
-app.get('/facebook/:tienda_uri.xml', async (req, res) => {
+// GET endpoint for Facebook RSS XML with date validation
+app.get('/facebook/:tienda_uri/:timestamp.xml', async (req, res) => {
   try {
-    const { tienda_uri } = req.params;
+    const { tienda_uri, timestamp } = req.params;
+    const providedTime = parseInt(timestamp);
     
-    const rssXml = await generateFacebookRSS(tienda_uri);
+    const result = await generateFacebookRSS(tienda_uri, providedTime);
     
-    if (!rssXml) {
+    if (!result) {
       return res.status(404).send('Tienda no encontrada');
     }
     
+    if (result.error === 'INVALID_DATE') {
+      return res.status(400).send('Timestamp inválido');
+    }
+    
     res.set('Content-Type', 'application/xml');
-    res.send(rssXml);
+    res.send(result.xml);
   } catch (error) {
     console.error('Error generating Facebook RSS:', error);
     res.status(500).send('Error interno del servidor');
   }
 });
 
-// GET endpoint for Google Shopping RSS XML
-app.get('/google/:tienda_uri.xml', async (req, res) => {
+// GET endpoint for Google Shopping RSS XML with date validation
+app.get('/google/:tienda_uri/:timestamp.xml', async (req, res) => {
   try {
-    const { tienda_uri } = req.params;
+    const { tienda_uri, timestamp } = req.params;
+    const providedTime = parseInt(timestamp);
     
-    const rssXml = await generateGoogleRSS(tienda_uri);
+    const result = await generateGoogleRSS(tienda_uri, providedTime);
     
-    if (!rssXml) {
+    if (!result) {
       return res.status(404).send('Tienda no encontrada');
     }
     
+    if (result.error === 'INVALID_DATE') {
+      return res.status(400).send('Timestamp inválido');
+    }
+    
     res.set('Content-Type', 'application/xml');
-    res.send(rssXml);
+    res.send(result.xml);
   } catch (error) {
     console.error('Error generating Google RSS:', error);
     res.status(500).send('Error interno del servidor');
   }
 });
-*/
 
 
 // Start the server 

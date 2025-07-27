@@ -21,7 +21,7 @@ async function getTiendaByUri(uri) {
   try {
     const { data, error } = await supabase
       .from('tiendas')
-      .select('nombre, tienda_id,uri,dominio')
+      .select('nombre, tienda_id,uri,dominio,fecha')
       .eq('uri', uri)
       .single();
     
