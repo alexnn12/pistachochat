@@ -31,6 +31,19 @@ async function simpleChat(prompt, tienda = '', productos = [], ai_faqs = '', uri
     // Obtener datos de Supabase si se proporciona URI
     let tiendaData = null;
     let paginasData = [];
+
+    /*
+    detectar la intención del usuario:
+     buscar_productos: "quiero ver zapatillas", "buscas remeras azules"
+  info_productos: "cuánto cuesta esto", "qué tallas hay", "de qué material es"
+  agregar_carrito: "lo quiero", "agregar al carrito", "llevarlo"
+  completar_datos: "mi dirección es...", "mi teléfono es...", "mi email es..."
+  comprar: "comprar", "pagar", "finalizar compra"
+  consultas_tienda: "horarios", "dónde están", "cómo devolver"
+  seguimiento_pedido: "dónde está mi pedido", "estado del envío"
+  soporte_ayuda: "no funciona", "cómo usar", "tengo un problema"
+  modificar_carrito: "cambiar cantidad", "eliminar del carrito"
+  metodos_pago_envio: "formas de pago", "cómo envían", "tarjeta de crédito"*/
     
     if (uri) {
       const supabaseData = await getTiendaData(uri, prompt);
