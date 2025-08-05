@@ -1,6 +1,6 @@
 const { OpenAI } = require('openai');
 const dotenv = require('dotenv');
-const { getTiendaData } = require('./supabase');
+const { getTiendaData, getChatByHash, saveChatConversation } = require('./supabase');
 
 dotenv.config();
 
@@ -26,11 +26,19 @@ function findRelevantProducts(prompt, productos) {
   }).slice(0, 100); // Máximo 5 productos
 }
 
-async function simpleChat(prompt, tienda = '', productos = [], ai_faqs = '', uri = '',mensajes_historial = '') {
+async function simpleChat(prompt, tienda = '', productos = [], ai_faqs = '', uri = '',mensajes_historial = '',chat_hash = '') {
   try {
     // Obtener datos de Supabase si se proporciona URI
     let tiendaData = null;
     let paginasData = [];
+    let chatData = null;
+
+    if (chat_hash) {
+      chatData = await getChatByHash(chat_hash);
+      console.log('chatData:', chatData);
+    }  
+
+
 
     /*
     detectar la intención del usuario:
@@ -95,7 +103,45 @@ ${context ? 'Usa la información de productos y tienda proporcionada para dar re
       ],
     });
 
-    return completion.choices[0].message.content;
+    const response = completion.choices[0].message.content;
+
+    // Guardar la conversación si se proporciona chat_id y tiendaData
+    if (chat_hash && tiendaData) {
+      let conversation = [];
+      
+      // Si existe un chat previo, obtener la conversación existente
+      if (chatData && chatData.texto_json) {
+        try {
+          conversation = JSON.parse(chatData.texto_json);
+        } catch (e) {
+          console.error('Error parsing existing conversation:', e);
+          conversation = [];
+        }
+      }
+      
+      // Agregar el nuevo intercambio a la conversación
+      conversation.push({
+        role: "user",
+        content: prompt,
+        timestamp: new Date().toISOString()
+      });
+      
+      conversation.push({
+        role: "assistant", 
+        content: response,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Guardar la conversación actualizada
+      await saveChatConversation(
+        chat_hash, 
+        tiendaData.tienda_id, 
+        tiendaData.usuario_id, // usando tienda_id como usuario_id por ahora
+        JSON.stringify(conversation)
+      );
+    }
+
+    return response;
   } catch (error) {
     console.error('Error in simpleChat:', error);
     return 'Disculpa, hubo un error procesando tu consulta. Por favor intenta de nuevo.';

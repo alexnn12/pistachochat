@@ -21,7 +21,7 @@ async function getTiendaByUri(uri) {
   try {
     const { data, error } = await supabase
       .from('tiendas')
-      .select('nombre, tienda_id,uri,dominio,fecha')
+      .select('nombre, tienda_id,uri,dominio,fecha,usuario_id')
       .eq('uri', uri)
       .single();
     
@@ -132,11 +132,79 @@ async function getTiendaData(uri, prompt = null) {
   }
 }
 
+async function getChatByHash(chatHash) {
+  try {
+    const { data, error } = await supabase
+      .from('tiendas_chats')
+      .select('*')
+      .eq('chat_hash', chatHash)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      console.error('Error fetching chat:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error in getChatByHash:', error);
+    return null;
+  }
+}
+
+async function saveChatConversation(chatHash, tiendaId, usuarioId, textoJson) {
+  try {
+    const existingChat = await getChatByHash(chatHash);
+  //  console.log('existingChat:', existingChat);
+    if (existingChat) {
+      const { data, error } = await supabase
+        .from('tiendas_chats')
+        .update({ texto_json: textoJson,fecha_actualizacion: new Date().toISOString() })
+        .eq('chat_hash', chatHash)
+        .select();
+      
+      if (error) {
+        console.error('Error updating chat:', error);
+        return null;
+      }
+      
+      return data[0];
+    } else {
+      const { data, error } = await supabase
+        .from('tiendas_chats')
+        .insert({
+          chat_hash: chatHash,
+          tienda_id: tiendaId,
+          usuario_id: usuarioId,
+          texto_json: textoJson,
+          fecha: new Date().toISOString(),
+          fecha_actualizacion: new Date().toISOString()
+        })
+        .select();
+      
+      if (error) {
+        console.error('Error creating chat:', error);
+        return null;
+      }
+      
+      return data[0];
+    }
+  } catch (error) {
+    console.error('Error in saveChatConversation:', error);
+    return null;
+  }
+}
+
 module.exports = {
   getTiendaByUri,
   getTiendasPaginasByTiendaId,
   getTiendaData,
-  getProductosByTiendaId
+  getProductosByTiendaId,
+  getChatByHash,
+  saveChatConversation
 };
 
 /*CREATE OR REPLACE FUNCTION buscar_tiendas_paginas (
