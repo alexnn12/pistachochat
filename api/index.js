@@ -122,7 +122,19 @@ app.get('/api/chatbot/tiendainfo', async (req, res) => {
     const tiendaInfo = await getTiendaInfo(telefono);
     
     if (!tiendaInfo) {
-      return res.status(404).json({ error: 'Tienda no encontrada' });
+      return res.json({
+        nombre: null,
+        tienda_id: null,
+        uri: null,
+        dominio: null,
+        telefono: telefono,
+        cantidadProductos: 0,
+        ventasSemana: {
+          total: 0,
+          cantidad: 0,
+          ventas: []
+        }
+      });
     }
     
     res.json(tiendaInfo);
