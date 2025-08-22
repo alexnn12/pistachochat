@@ -5,6 +5,7 @@ const { askQuestion } = require('../components/cherio');
 const { simpleChat } = require('../components/simple-chat');
 const { generateFacebookRSS } = require('../components/facebook-rss');
 const { generateGoogleRSS } = require('../components/google-rss');
+const { getTiendaInfo } = require('../components/chatbot-info');
 const serverless = require('serverless-http');
 const cors = require('cors');
 
@@ -106,6 +107,28 @@ app.get('/google/:tienda_uri/:timestamp.xml', async (req, res) => {
   } catch (error) {
     console.error('Error generating Google RSS:', error);
     res.status(500).send('Error interno del servidor');
+  }
+});
+
+// GET endpoint for chatbot tienda info
+app.get('/api/chatbot/tiendainfo', async (req, res) => {
+  try {
+    const { telefono } = req.query;
+    
+    if (!telefono) {
+      return res.status(400).json({ error: 'Teléfono es requerido' });
+    }
+    
+    const tiendaInfo = await getTiendaInfo(telefono);
+    
+    if (!tiendaInfo) {
+      return res.status(404).json({ error: 'Tienda no encontrada' });
+    }
+    
+    res.json(tiendaInfo);
+  } catch (error) {
+    console.error('Error getting tienda info:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
