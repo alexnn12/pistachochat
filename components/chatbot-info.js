@@ -54,6 +54,39 @@ async function getProductosByTiendaId(tiendaId) {
   }
 }
 
+function getEstadoPagoTexto(estado) {
+  switch (estado) {
+    case 0: return 'Pendiente';
+    case 1: return 'Pagado';
+    case 2: return 'Cancelado';
+    default: return 'No especificado';
+  }
+}
+
+function getEstadoEnvioTexto(estado_envio) {
+  if (estado_envio === null) return 'Pendiente';
+  switch (estado_envio) {
+    case 1: return 'Preparando';
+    case 2: return 'Empaquetado';
+    case 3: return 'Enviado';
+    case 4: return 'Entregado';
+    default: return 'No especificado';
+  }
+}
+
+function getFormaPagoTexto(forma_pago) {
+  switch (forma_pago) {
+    case 1: return 'Mercadopago';
+    case 2: return 'Transferencia';
+    case 3: return 'Paypal';
+    case 4: return 'Producto gratuito';
+    case 5: return 'Ualá Bis';
+    case 6: return 'Efectivo';
+    case 7: return 'Pago a coordinar';
+    default: return 'No especificado';
+  }
+}
+
 async function getVentasSemana(tiendaId) {
   try {
     const fechaInicio = new Date();
@@ -61,7 +94,26 @@ async function getVentasSemana(tiendaId) {
     
     const { data, error } = await supabase
       .from('tiendas_compras')
-      .select('*')
+      .select(`
+        compra_id,
+        nombre,
+        precio,
+        precio_dolar,
+        estado,
+        estado_envio,
+        fecha_creado,
+        forma_pago,
+        cliente_id,
+        tienda_producto_id,
+        producto_nombre,
+        cantidad,
+        observaciones,
+        direccion,
+        variante_nombre,
+        variante_id,
+        codigo_descuento,
+        sena
+      `)
       .eq('tienda_id', tiendaId)
       .gte('fecha_creado', fechaInicio.toISOString())
       .order('fecha_creado', { ascending: false });
@@ -71,7 +123,15 @@ async function getVentasSemana(tiendaId) {
       return [];
     }
     
-    return data;
+    // Transformar los datos para incluir estados en texto
+    const ventasConTexto = data.map(venta => ({
+      ...venta,
+      estado_texto: getEstadoPagoTexto(venta.estado),
+      estado_envio_texto: getEstadoEnvioTexto(venta.estado_envio),
+      forma_pago_texto: getFormaPagoTexto(venta.forma_pago)
+    }));
+    
+    return ventasConTexto;
   } catch (error) {
     console.error('Error in getVentasSemana:', error);
     return [];
