@@ -87,6 +87,31 @@ function getFormaPagoTexto(forma_pago) {
   }
 }
 
+async function getCarritoItems(compraId) {
+  try {
+    const { data, error } = await supabase
+      .from('tiendas_carritos')
+      .select(`
+        producto_nombre,
+        sku,
+        variante_nombre,
+        cantidad,
+        precio
+      `)
+      .eq('compra_id', compraId);
+    
+    if (error) {
+      console.error('Error fetching carrito items:', error);
+      return [];
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error in getCarritoItems:', error);
+    return [];
+  }
+}
+
 async function getVentasSemana(tiendaId) {
   try {
     const fechaInicio = new Date();
@@ -103,14 +128,11 @@ async function getVentasSemana(tiendaId) {
         estado_envio,
         fecha_creado,
         forma_pago,
-        cliente_id,
-        tienda_producto_id,
         producto_nombre,
         cantidad,
         observaciones,
         direccion,
         variante_nombre,
-        variante_id,
         codigo_descuento,
         sena
       `)
@@ -123,12 +145,17 @@ async function getVentasSemana(tiendaId) {
       return [];
     }
     
-    // Transformar los datos para incluir estados en texto
-    const ventasConTexto = data.map(venta => ({
-      ...venta,
-      estado_texto: getEstadoPagoTexto(venta.estado),
-      estado_envio_texto: getEstadoEnvioTexto(venta.estado_envio),
-      forma_pago_texto: getFormaPagoTexto(venta.forma_pago)
+    // Transformar los datos para incluir estados en texto y carrito items
+    const ventasConTexto = await Promise.all(data.map(async (venta) => {
+      const carritoItems = await getCarritoItems(venta.compra_id);
+      
+      return {
+        ...venta,
+        estado_texto: getEstadoPagoTexto(venta.estado),
+        estado_envio_texto: getEstadoEnvioTexto(venta.estado_envio),
+        forma_pago_texto: getFormaPagoTexto(venta.forma_pago),
+        carrito_items: carritoItems
+      };
     }));
     
     return ventasConTexto;
@@ -148,20 +175,53 @@ async function getTiendaInfo(telefono) {
     const productos = await getProductosByTiendaId(tienda.tienda_id);
     const ventas = await getVentasSemana(tienda.tienda_id);
     
-    const ventasTotal = ventas.reduce((sum, venta) => sum + (venta.total || 0), 0);
+    const ventasTotal = ventas.reduce((sum, venta) => sum + (venta.precio || 0), 0);
+    
+    // Contar ventas por estado
+    const ventasPagadas = ventas.filter(v => v.estado === 1).length;
+    const ventasPendientes = ventas.filter(v => v.estado === 0).length;
+    const ventasCanceladas = ventas.filter(v => v.estado === 2).length;
+    
+    // Contar por forma de pago
+    const formasPago = ventas.reduce((acc, venta) => {
+      const forma = venta.forma_pago_texto;
+      acc[forma] = (acc[forma] || 0) + 1;
+      return acc;
+    }, {});
     
     return {
-      nombre: tienda.nombre,
-      tienda_id: tienda.tienda_id,
-      uri: tienda.uri,
-      dominio: tienda.dominio,
-      telefono: tienda.telefono,
-      cantidadProductos: productos.length,
-      ventasSemana: {
-        total: ventasTotal,
-        cantidad: ventas.length,
-        ventas: ventas
-      }
+      tienda: {
+        nombre: tienda.nombre,
+        dominio: tienda.dominio,
+        cantidadProductosActivos: productos.length
+      },
+      resumenVentasSemana: {
+        totalVentas: ventas.length,
+        montoTotal: `$${ventasTotal.toLocaleString()}`,
+        ventasPagadas: ventasPagadas,
+        ventasPendientes: ventasPendientes,
+        ventasCanceladas: ventasCanceladas,
+        formasPagoUsadas: formasPago
+      },
+      detalleVentas: ventas.map(venta => ({
+        compra: `#${venta.compra_id}`,
+        cliente: venta.nombre,
+        fechaCompra: new Date(venta.fecha_creado).toLocaleDateString('es-AR'),
+        montoTotal: `$${venta.precio?.toLocaleString() || 0}`,
+        estadoPago: venta.estado_texto,
+        estadoEnvio: venta.estado_envio_texto,
+        metodoPago: venta.forma_pago_texto,
+        direccionEnvio: venta.direccion || 'No especificada',
+        observaciones: venta.observaciones || 'Sin observaciones',
+        descuento: venta.codigo_descuento || 'Sin descuento',
+        productosComprados: venta.carrito_items.map(item => ({
+          producto: item.producto_nombre,
+          sku: item.sku || 'Sin SKU',
+          variante: item.variante_nombre || 'Sin variante',
+          cantidad: item.cantidad,
+          precioUnitario: `$${item.precio?.toLocaleString() || 0}`
+        }))
+      }))
     };
   } catch (error) {
     console.error('Error in getTiendaInfo:', error);
