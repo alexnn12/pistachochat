@@ -129,6 +129,7 @@ app.get('/api/chatbot/tiendainfo', async (req, res) => {
         dominio: null,
         telefono: telefono,
         cantidadProductos: 0,
+        fechadelDia: null,
         ventasSemana: {
           total: 0,
           cantidad: 0,

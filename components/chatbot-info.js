@@ -193,7 +193,8 @@ async function getTiendaInfo(telefono) {
       tienda: {
         nombre: tienda.nombre,
         dominio: tienda.dominio || `www.pistacho.app/${tienda.uri}`,
-        cantidadProductosActivos: productos.length
+        cantidadProductosActivos: productos.length,
+        fechadelDia: new Date().toLocaleDateString('es-AR')
       },
       resumenVentasSemana: {
         totalVentas: ventas.length,
