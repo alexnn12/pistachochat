@@ -195,7 +195,13 @@ async function getChatMessagesByTelefono(telefono) {
     
     // Asegurar que sea un array
     if (!Array.isArray(mensajes)) {
-      mensajes = [];
+      try {
+        // Intentar parsear si es un string JSON
+        mensajes = typeof mensajes === 'string' ? JSON.parse(mensajes) : [];
+      } catch (e) {
+        console.error('Error parsing texto_json:', e);
+        mensajes = [];
+      }
     }
     
     return mensajes.slice(-10).map(mensaje => ({
