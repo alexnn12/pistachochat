@@ -6,6 +6,7 @@ const { simpleChat } = require('../components/simple-chat');
 const { generateFacebookRSS } = require('../components/facebook-rss');
 const { generateGoogleRSS } = require('../components/google-rss');
 const { getTiendaInfo } = require('../components/chatbot-info');
+const { saveMessage } = require('../components/chatbot-messages');
 const serverless = require('serverless-http');
 const cors = require('cors');
 
@@ -141,6 +142,34 @@ app.get('/api/chatbot/tiendainfo', async (req, res) => {
     res.json(tiendaInfo);
   } catch (error) {
     console.error('Error getting tienda info:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// GET endpoint para grabar mensaje del chatbot
+app.get('/api/chatbot/grabarmensaje', async (req, res) => {
+  try {
+    const { telefono, pregunta, respuesta } = req.query;
+    
+    if (!telefono || !pregunta || !respuesta) {
+      return res.status(400).json({ 
+        error: 'Parámetros requeridos: telefono, pregunta, respuesta' 
+      });
+    }
+    
+    const result = await saveMessage(telefono, pregunta, respuesta);
+    
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Mensaje guardado exitosamente',
+      data: result.data 
+    });
+  } catch (error) {
+    console.error('Error in grabarmensaje endpoint:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
