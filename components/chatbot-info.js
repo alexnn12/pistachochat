@@ -165,6 +165,51 @@ async function getVentasSemana(tiendaId) {
   }
 }
 
+// Generar hash único por día y teléfono
+function generateDailyChatHash(telefono) {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  return `${telefono}_${today}`;
+}
+
+async function getChatMessagesByTelefono(telefono) {
+  try {
+    // Format phone number if needed
+    if (telefono && !telefono.startsWith('+')) {
+      telefono = '+' + telefono;
+    }
+    
+    const chatHash = generateDailyChatHash(telefono);
+    
+    const { data, error } = await supabase
+      .from('tiendas_chats_admin')
+      .select('texto_json')
+      .eq('chat_hash', chatHash)
+      .single();
+    
+    if (error || !data) {
+      return [];
+    }
+    
+    // Obtener los últimos 10 mensajes
+    let mensajes = data.texto_json || [];
+    
+    // Asegurar que sea un array
+    if (!Array.isArray(mensajes)) {
+      mensajes = [];
+    }
+    
+    return mensajes.slice(-10).map(mensaje => ({
+      timestamp: mensaje.timestamp,
+      pregunta: mensaje.pregunta,
+      respuesta: mensaje.respuesta,
+      hora: new Date(mensaje.timestamp).toLocaleTimeString('es-AR')
+    }));
+  } catch (error) {
+    console.error('Error in getChatMessagesByTelefono:', error);
+    return [];
+  }
+}
+
 async function getTiendaInfo(telefono) {
   try {
     const tienda = await getTiendaByTelefono(telefono);
@@ -174,6 +219,7 @@ async function getTiendaInfo(telefono) {
     
     const productos = await getProductosByTiendaId(tienda.tienda_id);
     const ventas = await getVentasSemana(tienda.tienda_id);
+    const chatMessages = await getChatMessagesByTelefono(telefono);
     
     const ventasTotal = ventas.reduce((sum, venta) => sum + (venta.precio || 0), 0);
     
@@ -203,6 +249,10 @@ async function getTiendaInfo(telefono) {
         ventasPendientes: ventasPendientes,
         ventasCanceladas: ventasCanceladas,
         formasPagoUsadas: formasPago
+      },
+      chatDelDia: {
+        totalMensajes: chatMessages.length,
+        ultimosMensajes: chatMessages
       },
       detalleVentas: ventas.map(venta => ({
         compra: `#${venta.compra_id}`,

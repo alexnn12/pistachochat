@@ -135,6 +135,10 @@ app.get('/api/chatbot/tiendainfo', async (req, res) => {
           total: 0,
           cantidad: 0,
           ventas: []
+        },
+        chatDelDia: {
+          totalMensajes: 0,
+          ultimosMensajes: []
         }
       });
     }

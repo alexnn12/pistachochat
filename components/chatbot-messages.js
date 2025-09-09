@@ -51,6 +51,7 @@ async function saveMessage(telefono, pregunta, respuesta) {
       return { success: false, error: 'Tienda no encontrada para este teléfono' };
     }
 
+    console.log('tienda:', tienda);
     // Generar hash diario
     const chatHash = generateDailyChatHash(telefono);
     
@@ -59,6 +60,7 @@ async function saveMessage(telefono, pregunta, respuesta) {
       .from('tiendas_chats_admin')
       .select('*')
       .eq('chat_hash', chatHash)
+      .eq('tienda_id', tienda.tienda_id)
       .single();
 
     const nuevoMensaje = {
@@ -66,10 +68,20 @@ async function saveMessage(telefono, pregunta, respuesta) {
       pregunta: pregunta,
       respuesta: respuesta
     };
-
     if (existingChat) {
       // Actualizar chat existente
-      const textosExistentes = existingChat.texto_json || [];
+      let textosExistentes = Array.isArray(existingChat.texto_json) 
+        ? existingChat.texto_json 
+        : (typeof existingChat.texto_json === 'string' 
+            ? JSON.parse(existingChat.texto_json) 
+            : []);
+      
+      console.log('textosExistentes:', textosExistentes);
+      // Asegurar que sea un array
+      if (!Array.isArray(textosExistentes)) {
+        textosExistentes = [];
+      }
+      
       textosExistentes.push(nuevoMensaje);
 
       const { data, error } = await supabase
