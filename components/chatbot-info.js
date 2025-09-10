@@ -8,18 +8,49 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Normalizar teléfono para manejar diferentes formatos
+function normalizeTelefono(telefono) {
+  if (!telefono) return telefono;
+  
+  // Remover espacios y caracteres especiales
+  let cleanPhone = telefono.replace(/[\s\-\(\)]/g, '');
+  
+  // Si empieza con +549, mantenerlo
+  if (cleanPhone.startsWith('+549')) {
+    return cleanPhone;
+  }
+  
+  // Si empieza con +54 pero no +549, agregar el 9
+  if (cleanPhone.startsWith('+54') && !cleanPhone.startsWith('+549')) {
+    return cleanPhone.replace('+54', '+549');
+  }
+  
+  // Si empieza con 549, agregar +
+  if (cleanPhone.startsWith('549')) {
+    return '+' + cleanPhone;
+  }
+  
+  // Si empieza con 54 pero no 549, agregar 9 después del 54
+  if (cleanPhone.startsWith('54') && !cleanPhone.startsWith('549')) {
+    return '+549' + cleanPhone.substring(2);
+  }
+  
+  // Si no tiene código de país, agregar +549
+  if (!cleanPhone.startsWith('+')) {
+    return '+549' + cleanPhone;
+  }
+  
+  return cleanPhone;
+}
+
 async function getTiendaByTelefono(telefono) {
   try {
- //  console.log(telefono);
-    // Add '+' prefix to phone number if it doesn't already have one
-    if (telefono && !telefono.startsWith('+')) {
-      telefono = '+' + telefono;
-      console.log('Formatted phone number:', telefono);
-    }
+    const normalizedPhone = normalizeTelefono(telefono);
+    console.log('Original phone:', telefono, 'Normalized phone:', normalizedPhone);
     const { data, error } = await supabase
       .from('tiendas')
       .select('nombre, tienda_id,uri,dominio,fecha,usuario_id,texto_inicial')
-      .eq('whatsapp', telefono)
+      .eq('whatsapp', normalizedPhone)
       .single();
     console.log(data);
     if (error) {
@@ -173,12 +204,8 @@ function generateDailyChatHash(telefono) {
 
 async function getChatMessagesByTelefono(telefono) {
   try {
-    // Format phone number if needed
-    if (telefono && !telefono.startsWith('+')) {
-      telefono = '+' + telefono;
-    }
-    
-    const chatHash = generateDailyChatHash(telefono);
+    const normalizedPhone = normalizeTelefono(telefono);
+    const chatHash = generateDailyChatHash(normalizedPhone);
     
     const { data, error } = await supabase
       .from('tiendas_chats_admin')
