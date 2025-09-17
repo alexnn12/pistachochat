@@ -53,11 +53,26 @@ async function getTiendaByTelefono(telefono) {
   try {
     const normalizedPhone = normalizeTelefono(telefono);
     
-    const { data, error } = await supabase
+    // Primero buscar con el teléfono normalizado (+549)
+    let { data, error } = await supabase
       .from('tiendas')
       .select('tienda_id, usuario_id')
       .eq('whatsapp', normalizedPhone)
       .single();
+    
+    // Si no encuentra y el teléfono normalizado tiene +549, también buscar con +54
+    if (error && normalizedPhone.startsWith('+549')) {
+      const phoneWith54 = normalizedPhone.replace('+549', '+54');
+      
+      const result = await supabase
+        .from('tiendas')
+        .select('tienda_id, usuario_id')
+        .eq('whatsapp', phoneWith54)
+        .single();
+      
+      data = result.data;
+      error = result.error;
+    }
     
     if (error) {
       console.error('Error fetching tienda by telefono:', error);
